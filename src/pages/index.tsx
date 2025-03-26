@@ -32,7 +32,7 @@ export default function Home() {
         throw new Error('Failed to process transcript');
       }
       const data = await res.json()
-      setTopics(data.chunks || [])
+      setTopics(data.topics || [])
       setError('');
     } catch (error) {
       setError('Error processing transcript');
@@ -79,16 +79,15 @@ export default function Home() {
                 onClick={() => setExpandedId(expandedId === topic.id ? null : topic.id)}
               >
                 <h3 className="text-lg font-semibold">{topic.title}</h3>
-                <p className="text-gray-600">{topic.summary}</p>
               </div>
               
               {expandedId === topic.id && (
                 <ul className="mt-4 ml-4 list-disc space-y-2">
-                  {topic.bulletPoints.map((bulletPoint, index) => (
+                  {topic.summary.map((item, index) => (
                     <li key={index}>
-                      <div>{bulletPoint.point}</div>
+                      <div>{item.point}</div>
                       <div className="ml-4 mt-1 text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        - {bulletPoint.transcript}
+                        - {item.transcriptSection}
                       </div>
                     </li>
                   ))}

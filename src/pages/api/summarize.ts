@@ -6,13 +6,12 @@ const openai = new OpenAI({
 });
 
 interface ChunkResponse {
-  chunks: Array<{
-    id: number;
+  topics: Array<{
+    id: string;
     title: string;
-    summary: string;
-    bulletPoints: Array<{
+    summary: Array<{
       point: string;
-      transcript: string;
+      transcriptSection: string;
     }>;
   }>;
 }
@@ -20,35 +19,43 @@ interface ChunkResponse {
 const messages = [
   {
     role: "system",
-    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create detailed bullet points for each topic to help students review the lecture content. For each bullet point, include the relevant section of the transcript that discusses that point."
+    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create detailed bullet point summaries for each topic to help students review the lecture content. Be thorough in identifying distinct topics and provide comprehensive bullet points for each topic. Always respond with valid JSON."
   },
   {
     role: "user",
-    content: (transcript: string) => `Analyze this lecture transcript and break it into logical chunks. For each chunk, provide:
-    1. A concise topic title
-    2. A one-sentence summary
-    3. 3-5 detailed bullet points with their corresponding transcript sections
-
-    Return a JSON object with a "chunks" array. Example format:
+    content: (transcript: string) => `Analyze this lecture transcript and identify ALL main topics discussed (Exhaustive, and in the order they are discussed). For each topic:
+    1. Create a clear, concise title
+    2. Provide 5-8 (depending on the length of the topic) detailed bullet points that capture the key concepts, examples, and important details
+    3. Ensure bullet points are specific and informative
+    4. For each bullet point, identify the relevant section of the transcript that contains the detailed discussion of that point
+    
+    Return the result as JSON with the following structure:
     {
-      "chunks": [
+      "topics": [
         {
-          "id": 1,
-          "title": "Introduction to Topic",
-          "summary": "Brief overview of main concepts",
-          "bulletPoints": [
+          "id": "topic-id",
+          "title": "Topic Title",
+          "summary": [
             {
-              "point": "Key concept 1",
-              "transcript": "Relevant transcript section discussing key concept 1..."
+              "point": "Detailed bullet point 1",
+              "transcriptSection": "The relevant section of the transcript that discusses this point in detail"
             },
             {
-              "point": "Key concept 2",
-              "transcript": "Relevant transcript section discussing key concept 2..."
-            }
+              "point": "Detailed bullet point 2",
+              "transcriptSection": "The relevant section of the transcript that discusses this point in detail"
+            },
+            ...
           ]
         }
       ]
     }
+    
+    Guidelines for topic identification:
+    - Include both major themes and important technical details
+    - Consider chronological progression of concepts
+    - Capture any important examples or case studies as separate topics if they illustrate key concepts
+    - For each bullet point, extract the most relevant section of the transcript that provides the detailed discussion of that point
+    - Make sure the transcript sections are well-formatted and easy to read
 
     Transcript:\n${transcript}`
   }
@@ -96,7 +103,7 @@ export default async function handler(
       throw new Error('Invalid JSON response from OpenAI');
     }
 
-    if (!parsedResponse.chunks || !Array.isArray(parsedResponse.chunks)) {
+    if (!parsedResponse.topics || !Array.isArray(parsedResponse.topics)) {
       throw new Error('Invalid response format from OpenAI');
     }
 

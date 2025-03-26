@@ -1,9 +1,8 @@
 export interface TopicChunk {
-  id: number;           // Unique identifier for the chunk
-  title: string;        // Short topic title
-  summary: string;      // Brief overview of the topic
-  bulletPoints: Array<{
+  id: string;           // Unique identifier for the topic
+  title: string;        // Topic title
+  summary: Array<{
     point: string;      // The bullet point text
-    transcript: string; // The relevant transcript section
+    transcriptSection: string; // The relevant transcript section
   }>;
 }
